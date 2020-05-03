@@ -1,0 +1,36 @@
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+    IMAGE_NAME=rclsilver/ta-mere-en-slip
+    IMAGE_VERSION=1.0.0
+
+install:
+  - |
+    docker build \
+      -t ${IMAGE_NAME}-backend:v${IMAGE_VERSION} \
+      -f Dockerfile \
+      .
+  - |
+    docker build \
+      -t ${IMAGE_NAME}-frontend:v${IMAGE_VERSION} \
+      -f frontend/Dockerfile \
+      frontend/
+
+after_success:
+  - echo "${DOCKER_PASSWORD}" | docker login --username="${DOCKER_USERNAME}" --password-stdin
+  - docker tag "${IMAGE_NAME}-backend" "${IMAGE_NAME}-backend:latest"
+  - docker push "${IMAGE_NAME}-backend:latest"
+  - docker tag "${IMAGE_NAME}-backend" "${IMAGE_NAME}-backend:v${IMAGE_VERSION}"
+  - docker push "${IMAGE_NAME}-backend:v${IMAGE_VERSION}"
+  - docker tag "${IMAGE_NAME}-frontend" "${IMAGE_NAME}-frontend:latest"
+  - docker push "${IMAGE_NAME}-frontend:latest"
+  - docker tag "${IMAGE_NAME}-frontend" "${IMAGE_NAME}-frontend:v${IMAGE_VERSION}"
+  - docker push "${IMAGE_NAME}-frontend:v${IMAGE_VERSION}"
+
+branches:
+  only:
+    - master
